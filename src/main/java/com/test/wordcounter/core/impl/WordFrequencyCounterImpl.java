@@ -1,37 +1,54 @@
 package com.test.wordcounter.core.impl;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.util.stream.Stream;
 
 import com.test.wordcounter.core.interfaces.WordFrequencyCounter;
+import com.test.wordcounter.error.BadInputException;
 
-public class WordFrequencyCounterImpl implements WordFrequencyCounter{
+@Component
+public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 
 	private PriorityQueue<Map.Entry<String, Integer>> orderedQueue = new PriorityQueue<>((a, b) -> {
 		return (b.getValue() - a.getValue());
 	});
 
 	private HashMap<String, Integer> wordCountHashMap = new HashMap<>();
-	private String NON_ASCII_FILTER = "[^\\sa-zA-Z0-9]"; 
+	private String NON_ASCII_FILTER = "[^\\sa-zA-Z0-9]";
+	private Logger logger = LogManager.getLogger(WordFrequencyCounterImpl.class);
 
-	public Map<String, Integer> getKMostFrequentWord(File inputFile, int k) {
+	public Map<String, Integer> getKMostFrequentWord(MultipartFile inputFile, int k) throws Exception {
 		if (inputFile == null) {
-			return new LinkedHashMap<>();
+			logger.error("Input file is null");
+			throw new BadInputException("Input file is null");
 		}
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
+		InputStream input;
+		try {
+			input = inputFile.getInputStream();
+			Stream<String> stream = new BufferedReader(
+					new InputStreamReader(input, StandardCharsets.UTF_8))
+					.lines();
+			stream.forEach(line -> {
 				countWords(wordCountHashMap, line);
-			}
+			});
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error occurred duing processing", e);
+			throw e;
 		}
 
 		return retrieveMostFrequentWords(orderedQueue, wordCountHashMap, k);
@@ -50,16 +67,16 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter{
 			HashMap<String, Integer> wordCountHashMap, int k) {
 
 		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
-		
+
 		for (Map.Entry<String, Integer> entry : wordCountHashMap.entrySet()) {
 			orderedQueue.add(entry);
 		}
 
-		for (int i = 0; i < k; ++i) {
+		for (int i = 0; i < k && i < wordCountHashMap.size(); ++i) {
 			Entry<String, Integer> entry = orderedQueue.poll();
 			result.put(entry.getKey(), entry.getValue());
 		}
-		
+
 		return result;
 	}
 }

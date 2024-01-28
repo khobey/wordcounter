@@ -4,6 +4,11 @@ import java.util.LinkedHashMap;
 
 public class WordResult {
 	
+	public WordResult(LinkedHashMap<String, Integer> result)
+	{
+		this.result = result;
+	}
+	
 	public LinkedHashMap<String, Integer> getResult() {
 		return result;
 	}
