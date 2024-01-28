@@ -29,5 +29,7 @@ A successful response will look like
 ```
 
 Other responses can be:
+
 400 - Bad request when inputs are not valid or missing
+
 500 - Server error when errors occur during processing

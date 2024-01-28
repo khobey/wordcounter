@@ -36,6 +36,12 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 			logger.error("Input file is null");
 			throw new BadInputException("Input file is null");
 		}
+		
+		if(k < 0)
+		{
+			logger.error("Value of K is less than 0");
+			throw new BadInputException("Value of K is less than 0");
+		}
 
 		InputStream input;
 		try {
