@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,12 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 		{
 			logger.error("Value of K is less than 0");
 			throw new BadInputException("Value of K is less than 0");
+		}
+		
+		if(!".txt".equalsIgnoreCase(FilenameUtils.getExtension(inputFile.getName())))
+		{
+			logger.error("File extension is invalid {}", FilenameUtils.getExtension(inputFile.getName()));
+			throw new BadInputException("File type is invalid. \".txt\" files are expected.");
 		}
 	}
 	

@@ -33,8 +33,16 @@ Other responses can be:
 
 400 - Bad request when inputs are not valid or missing
 
+413 - File uploaded is too big. 2MB is the limit
+
 500 - Server error when errors occur during processing
 
 # Current Limitations
 - File limit is up to 2MB
 - File must be of .txt extension
+- Local caching is available for the same text files uploaded to skip recalculation.
+
+#Suggested improvements
+- Validation of text contents
+- Authentication and authorization (not implemented yet)
+- Remote caching

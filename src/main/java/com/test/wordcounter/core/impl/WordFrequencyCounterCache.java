@@ -3,7 +3,7 @@ package com.test.wordcounter.core.impl;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WordFrequencyCounterCache {
 	
-	private HashMap<String, PriorityQueue<Map.Entry<String, Integer>>> cache = new HashMap<>();
+	private static ConcurrentHashMap<String, PriorityQueue<Map.Entry<String, Integer>>> cache = new ConcurrentHashMap<>();
 	
 	public void storeData(String key, PriorityQueue<Map.Entry<String, Integer>> data )
 	{
