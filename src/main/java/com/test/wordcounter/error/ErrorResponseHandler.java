@@ -21,6 +21,15 @@ public class ErrorResponseHandler {
 		return new ErrorResponse("Bad data. Please check input");
 	}
 	
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	@ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ErrorResponse handleMaxSizeException(
+      MaxUploadSizeExceededException ex) {
+ 
+		logger.error("File too large", ex);
+		return new ErrorResponse("File too large");
+    }
+	
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public ErrorResponse  handleException(Exception ex)
@@ -29,11 +38,5 @@ public class ErrorResponseHandler {
 		return new ErrorResponse("Error occurred during processing.");
 	}
 	
-	@ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ErrorResponse handleMaxSizeException(
-      MaxUploadSizeExceededException ex) {
- 
-		logger.error("File too large", ex);
-		return new ErrorResponse("File too large");
-    }
+	
 }
