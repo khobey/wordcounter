@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.http.HttpStatus;
 
 @RestControllerAdvice
@@ -18,8 +18,17 @@ public class ErrorResponseHandler {
 	public ErrorResponse  handleBadInput(BadInputException ex)
 	{
 		logger.error("Error encountered", ex);
-		return new ErrorResponse("Bad data. Please check input");
+		return new ErrorResponse(ex.getMessage());
 	}
+	
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	@ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ErrorResponse handleMaxSizeException(
+      MaxUploadSizeExceededException ex) {
+ 
+		logger.error("File too large", ex);
+		return new ErrorResponse("File too large");
+    }
 	
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -28,4 +37,6 @@ public class ErrorResponseHandler {
 		logger.error("Error encountered", ex);
 		return new ErrorResponse("Error occurred during processing.");
 	}
+	
+	
 }
