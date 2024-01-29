@@ -18,7 +18,7 @@ public class ErrorResponseHandler {
 	public ErrorResponse  handleBadInput(BadInputException ex)
 	{
 		logger.error("Error encountered", ex);
-		return new ErrorResponse("Bad data. Please check input");
+		return new ErrorResponse(ex.getMessage());
 	}
 	
 	@ExceptionHandler(MaxUploadSizeExceededException.class)

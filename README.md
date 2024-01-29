@@ -46,3 +46,4 @@ Other responses can be:
 - Validation of text contents
 - Authentication and authorization (not implemented yet)
 - Remote caching
+- Limit can be configurable or based on available memory

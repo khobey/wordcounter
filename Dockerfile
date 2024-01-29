@@ -3,7 +3,7 @@
 #
 FROM maven:3.8.6-openjdk-11 AS build
 COPY . /home/app
-RUN mvn -Dmaven.test.skip=true -f /home/app/pom.xml clean package
+RUN mvn -f /home/app/pom.xml clean package
 
 #
 # Run

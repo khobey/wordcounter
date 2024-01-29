@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.stream.Stream;
 
@@ -35,13 +33,16 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 
 	public Map<String, Integer> getKMostFrequentWord(MultipartFile inputFile, int k) throws Exception {
 		
+		HashMap<String, Integer> wordCountHashMap = new HashMap<>();
+		PriorityQueue<Map.Entry<String, Integer>> orderedQueue = new PriorityQueue<>(new CustomComparator());
+		
 		validateInputs(inputFile, k);
 		
 		String key = cache.generateCheckSum(inputFile.getBytes());
 		
 		if(cache.containsData(key))
 		{
-			logger.debug("Data already cached.");
+			logger.debug("Data already cached.Key is {}", key);
 			orderedQueue  = cache.getStoredData(key);
 		}
 		else
@@ -64,8 +65,8 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 			cacheData(key,orderedQueue );
 		}
 
-		
-		return retrieveMostFrequentWords(orderedQueue, k);
+		Map<String, Integer> result = retrieveMostFrequentWords(orderedQueue, k);
+		return result;
 	}
 
 	private void validateInputs(MultipartFile inputFile, int k) throws BadInputException {
@@ -80,9 +81,9 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 			throw new BadInputException("Value of K is less than 0");
 		}
 		
-		if(!".txt".equalsIgnoreCase(FilenameUtils.getExtension(inputFile.getName())))
+		if(!"text/plain".equalsIgnoreCase(inputFile.getContentType()))
 		{
-			logger.error("File extension is invalid {}", FilenameUtils.getExtension(inputFile.getName()));
+			logger.error("File extension is invalid {}", inputFile.getContentType());
 			throw new BadInputException("File type is invalid. \".txt\" files are expected.");
 		}
 	}
@@ -91,43 +92,35 @@ public class WordFrequencyCounterImpl implements WordFrequencyCounter {
 		String[] words = line.split(" ");
 
 		for (int i = 0; i < words.length; i++) {
-			String currentString = words[i].replaceAll(NON_ASCII_FILTER, "");
+			String currentString = words[i].replaceAll(NON_ASCII_FILTER, "").trim();
 			wordCountHashMap.compute(currentString, (k, v) -> v == null ? 1 : v + 1);
 		}
 	}
 	
 	private void orderWords(PriorityQueue<Entry<String, Integer>> orderedQueue, HashMap<String, Integer> wordCountHashMap)
 	{
-		for (Map.Entry<String, Integer> entry : wordCountHashMap.entrySet()) {
+		for(Map.Entry<String,Integer> entry:wordCountHashMap.entrySet()){
 			orderedQueue.add(entry);
-		}
+	      }
 	}
 
 	private LinkedHashMap<String, Integer> retrieveMostFrequentWords(PriorityQueue<Entry<String, Integer>> orderedQueue, int k) {
 
 		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
 		
-		Iterator<Entry<String, Integer>> itr = orderedQueue.iterator();
-		int i = 0;
-		while (itr.hasNext() && i<k) {
-			Entry<String, Integer> entry = itr.next();
-			result.put(entry.getKey(), entry.getValue());
-			i++;
-		}
+		 for (int i=0; i<k && !orderedQueue.isEmpty(); ++i)
+		    {
+		    	Entry<String,Integer> entry = orderedQueue.poll();
+		    	result.put(entry.getKey(), entry.getValue());
+		    }
 		return result;
 	}
 	
-	private void cacheData(String key, PriorityQueue<Entry<String, Integer>> orderedQueue) throws NoSuchAlgorithmException
+	private void cacheData(String key, PriorityQueue<Entry<String, Integer>> data) throws NoSuchAlgorithmException
 	{
-		cache.storeData(key, orderedQueue);
+		cache.storeData(key, data);
 	}
-
-
-	private PriorityQueue<Map.Entry<String, Integer>> orderedQueue = new PriorityQueue<>((a, b) -> {
-		return (b.getValue() - a.getValue());
-	});
-
-	private HashMap<String, Integer> wordCountHashMap = new HashMap<>();
+ 
 	private String NON_ASCII_FILTER = "[^\\sa-zA-Z0-9]";
 	private Logger logger = LogManager.getLogger(WordFrequencyCounterImpl.class);
 	private WordFrequencyCounterCache cache;
